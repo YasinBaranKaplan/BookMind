@@ -4,23 +4,15 @@ import rag.embeddings
 
 def main():
     print("Welcome to the BookMind!")
-    text = read_pdf("books/ Nietzsche-Agladiginda.pdf")
+    pages = read_pdf("books/ Nietzsche-Agladiginda.pdf")
 
-    chunks = chunk_text(text)
+    print(f"Toplam sayfa: {len(pages)}")
+    print(pages[0].number)
 
-    print(f"Toplam karakter : {len(text)}")
-    print(f"Chunk sayısı    : {len(chunks)}")
-    print()
-
-    print("\nİlk Chunk\n")
-    print("-" * 80)
-    print(chunks[0])
-    print("-" * 80)
-
-    print("\nİkinci Chunk\n")
-    print("-" * 80)
-    print(chunks[1])
-    print("-" * 80)
+    for page in pages[:5]:
+        print(f"Sayfa {page.number}")
+        print(repr(page.text[:100]))
+        print("-" * 40)
 
 
 

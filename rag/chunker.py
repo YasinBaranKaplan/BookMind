@@ -1,16 +1,27 @@
-def chunk_text(
-    text: str,
-    chunk_size: int = 1000,
-    overlap: int = 200,
-):
+from uuid import uuid4
+from rag.schema import Chunk,Page
+
+def chunk_pages(
+    pages: list[Page],
+    source: str,
+) -> list[Chunk]:
+
     chunks = []
 
-    start = 0
+    for index, page in enumerate(pages):
 
-    while start < len(text):
-        chunk = text[start:start+chunk_size]
+        chunk = Chunk(
+            id=str(uuid4()),
+            text=page.text,
+
+            source=source,
+
+            page_start=page.number,
+            page_end=page.number,
+
+            chunk_index=index,
+        )
 
         chunks.append(chunk)
 
-        start += chunk_size - overlap
     return chunks

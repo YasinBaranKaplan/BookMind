@@ -1,9 +1,9 @@
 import fitz
 
-from rag.schema import Page
+from rag.schema import Page,Document
 
 
-def read_pdf(pdf_path: str) -> list[Page]:
+def read_pdf(pdf_path: str) -> Document:
 
     document = fitz.open(pdf_path)
 
@@ -20,4 +20,7 @@ def read_pdf(pdf_path: str) -> list[Page]:
             )
         )
 
-    return pages
+    return Document(
+        source=pdf_path,
+        pages=pages
+    )

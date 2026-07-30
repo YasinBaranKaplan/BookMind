@@ -17,3 +17,8 @@ class Chunk:
     page_end: int
 
     chunk_index: int
+
+@dataclass
+class Document:
+    source :str
+    pages:list[Page]

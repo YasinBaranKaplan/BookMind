@@ -3,15 +3,18 @@ from rag.chunker import chunk_pages
 
 def main():
     print("Welcome to the BookMind!")
-    pages = read_pdf("books/ Nietzsche-Agladiginda.pdf")
+    document = read_pdf("books/ Nietzsche-Agladiginda.pdf")
 
     chunks = chunk_pages(
-        pages,
+        document.pages,
         source="Nietzsche-Agladiginda.pdf",
     )
 
-    print(f"Toplam sayfa : {len(pages)}")
+    print(f"Toplam sayfa : {len(document.pages)}")
+    print(f"Kaynak : {document.source}")
     print(f"Toplam chunk : {len(chunks)}")
+    print(f"Toplam kelime : {sum(len(chunk.text.split()) for chunk in chunks)}")
+    
 
     print(chunks[0])
     print(chunks[0].text[:300])

@@ -3,6 +3,43 @@ from uuid import uuid4
 from rag.schema import Document, Chunk
 
 
+def find_split_end(text: str, start: int, candidate_end: int) -> int:
+    """
+    Chunk sonunu belirler.
+
+    Öncelik sırası:
+    1. Candidate_end'den sonraki en yakın cümle sonu (maksimum 150 karakter)
+    2. Candidate_end'den önceki en yakın cümle sonu
+    3. Candidate_end'den önceki en yakın boşluk
+    4. Hard cut (candidate_end)
+    """
+
+    sentence_endings = ".!?"
+
+    if candidate_end >= len(text):
+        return len(text)
+
+    # En fazla 150 karakter ileri bak
+    forward_limit = min(candidate_end + 150, len(text) - 1)
+
+    for i in range(candidate_end, forward_limit + 1):
+        if text[i] in sentence_endings:
+            return i + 1
+
+    # Geriye doğru cümle sonu ara
+    for i in range(candidate_end, start, -1):
+        if text[i] in sentence_endings:
+            return i + 1
+
+    # Kelime sonuna düş
+    word_end = text.rfind(" ", start, candidate_end)
+    if word_end != -1:
+        return word_end
+
+    # Son çare
+    return candidate_end
+
+
 def chunk_document(
     document: Document,
     chunk_size: int = 1000,
@@ -27,12 +64,19 @@ def chunk_document(
 
         candidate_end = min(start + chunk_size, len(full_text))
 
-        split_end = full_text.rfind(" ", start, candidate_end)
+        if candidate_end == len(full_text):
+            split_end = len(full_text)
+        else:
+            split_end = find_split_end(
+                full_text,
+                start,
+                candidate_end,
+            )
 
-        if split_end == -1:
-            split_end = candidate_end
+        chunk_text = full_text[start:split_end].strip()
 
-        chunk_text = full_text[start:split_end]
+        if not chunk_text:
+            break
 
         page_start = 1
         page_end = len(document.pages)
@@ -54,10 +98,10 @@ def chunk_document(
             )
         )
 
-        # Bir sonraki chunk'ın başlangıcını overlap kadar geri al
+        # Overlap başlangıcı
         next_start = max(0, split_end - overlap)
 
-        # Overlap bölgesi içinde ilk boşluğu bul
+        # Kelime başından başlamaya çalış
         space_index = full_text.find(" ", next_start, split_end)
 
         if space_index != -1:
@@ -65,11 +109,9 @@ def chunk_document(
         else:
             start = next_start
 
-        # Güvenlik: başlangıç ilerlemediyse sonsuz döngüyü engelle
+        # Sonsuz döngü koruması
         if start <= previous_start:
             start = split_end
-        
-        
 
         chunk_index += 1
 
